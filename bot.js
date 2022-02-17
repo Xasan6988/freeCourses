@@ -3,16 +3,17 @@ const mongo = require('mongoose');
 const config = require('config');
 
 const {createStore, applyMiddleware} = require('redux');
-const rootReducer = require("./redux/rootReducer.js");
+const rootReducer = require("./redux/rootReducer");
 const {fetchCourse, fetchUsers, addUser} = require('./redux/actions');
 const { default: thunk } = require('redux-thunk');
 
 const {menu_keyboard} = require('./keyboards/menu_keyboard');
-const searchScene = require('./Scenes/searchScene.js');
+const adsScene = require('./Scenes/adsScene');
+const searchScene = require('./Scenes/searchScene');
 
 const {checkUserInArr, findItemInArr, arrToLower} = require('./helpers');
-const { category_list, courses_list } = require('./keyboards/courses_keyboars.js');
-const Course = require('./models/Course.js');
+const { category_list, courses_list } = require('./keyboards/courses_keyboars');
+const Course = require('./models/Course');
 
 const store = createStore(
   rootReducer,
@@ -21,7 +22,7 @@ const store = createStore(
 
 const bot = new Telegraf(config.get('TOKEN'));
 
-const stage = new Stage([searchScene]);
+const stage = new Stage([searchScene, adsScene]);
 
 bot.use(session(), stage.middleware());
 
@@ -76,6 +77,18 @@ bot.action('menu', async ctx => {
       )
     });
 });
+
+bot.action('admin', async ctx => {
+  if (checkUserInArr(ctx.from.id, config.get('admins'))) {
+    return ctx.editMessageText('Повеливай, админ', Markup.inlineKeyboard([
+      Markup.button.callback('Реклама', 'ads'),
+      Markup.button.callback('Вернуться в меню', 'menu'),
+    ], {wrap: (btn, index, currentRow) => currentRow.length >= index / 2}));
+  } else {
+    ctx.replyWithHTML('Ухади, ты не админ');
+    ctx.replyWithHTML('Выберите один из пунктов меню', menu_keyboard());
+  }
+})
 
 bot.action('category', async ctx => {
   ctx.editMessageText(`
@@ -133,7 +146,48 @@ bot.action('cancel_search', async ctx => {
     });
 });
 
+bot.action('ads', async ctx => {
+  if (checkUserInArr(ctx.from.id, config.get('admins'))) {
+    ctx.scene.enter('adsScene');
+  }
+})
 
+bot.action('startAds', async ctx => {
+  ctx.scene.leave();
+  const users = store.getState().users;
+  const ads = ctx.session.ads;
+  users.map(async (user) => {
+    if (ads.photo) {
+      await ctx.telegram.sendPhoto(user, ads.photo, {caption: ads.caption});
+    } else {
+      await ctx.telegram.sendMessage(user, ads.caption);
+    }
+  });
+  ctx.session.ads = undefined;
+});
+
+bot.action('clear', async ctx => {
+  ctx.scene.leave();
+  ctx.session[ctx.session.clear] = undefined;
+  ctx.session.clear = undefined;
+  ctx.editMessageText(`Алоха, ${ctx.from.first_name}!
+
+В этом боте ты можешь найти слитые курсы, которые есть у <a href="t.me/ramirezzzs">меня</a>!
+
+Курсы разбиты по категориям (насколько это вообще возможно), а так же есть поиск по названию курса.
+
+Если есть желание поблагодарить меня - жми контакты, там есть реквизиты.
+      `, {
+        disable_web_page_preview: true,
+        parse_mode: 'HTML',
+        ...menu_keyboard(
+            checkUserInArr(
+              ctx.from.id,
+              config.get('admins')
+            )
+        )
+      });
+});
 
 bot.action('about', async ctx => {
   ctx.editMessageText(`Не буду скрывать, что создал этого бота, что бы попробовать привлечь людей в свой канал и пичкать вас рекламой. Иначе бы я, по прежнему, раздавал курсы под хайд на лолзе. Но, быть может, вам будет полезен данный софт, который будет хранить в себе ссылки на курсы (а заодно мотивирует меня поддерживать ссылки актуальными).
