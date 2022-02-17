@@ -1,0 +1,27 @@
+{
+  "name": "freecourses",
+  "version": "1.0.0",
+  "description": "telegram bot with courses",
+  "main": "bot.js",
+  "scripts": {
+    "dev": "nodemon bot.js",
+    "start": "node bot.js"
+  },
+  "keywords": [
+    "[js",
+    "tg-bot]"
+  ],
+  "author": "OneSadDev <onesaddev@mail.ru>",
+  "license": "MIT",
+  "devDependencies": {
+    "nodemon": "^2.0.15"
+  },
+  "dependencies": {
+    "axios": "^0.26.0",
+    "config": "^3.3.7",
+    "mongoose": "^6.2.2",
+    "redux": "^4.1.2",
+    "redux-thunk": "^2.4.1",
+    "telegraf": "^4.7.0"
+  }
+}
