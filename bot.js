@@ -1,4 +1,4 @@
-const {Telegraf} = require('telegraf');
+const {Telegraf, Markup, session, Scenes: {Stage}} = require('telegraf');
 const mongo = require('mongoose');
 const config = require('config');
 
@@ -7,7 +7,12 @@ const rootReducer = require("./redux/rootReducer.js");
 const {fetchCourse, fetchUsers, addUser} = require('./redux/actions');
 const { default: thunk } = require('redux-thunk');
 
-const {checkUser} = require('./helpers');
+const {menu_keyboard} = require('./keyboards/menu_keyboard');
+const searchScene = require('./Scenes/searchScene.js');
+
+const {checkUserInArr, findItemInArr, arrToLower} = require('./helpers');
+const { category_list, courses_list } = require('./keyboards/courses_keyboars.js');
+const Course = require('./models/Course.js');
 
 const store = createStore(
   rootReducer,
@@ -16,6 +21,10 @@ const store = createStore(
 
 const bot = new Telegraf(config.get('TOKEN'));
 
+const stage = new Stage([searchScene]);
+
+bot.use(session(), stage.middleware());
+
 bot.use((ctx, next) => {
   console.log(ctx.from.id);
   next();
@@ -23,11 +32,166 @@ bot.use((ctx, next) => {
 
 bot.start(async ctx => {
   // Проверяем наличие пользователя в базе
-  if (checkUser(ctx.from.id, store.getState().users)) {
+  if (!checkUserInArr(ctx.from.id, store.getState().users)) {
     // добавляем пользователя
     store.dispatch(addUser(ctx.from.id));
   }
-  ctx.reply(`Hello, ${ctx.from.first_name}! This bot give some courses for free!`);
+  ctx.replyWithHTML(`Алоха, ${ctx.from.first_name}!
+
+В этом боте ты можешь найти слитые курсы, которые есть у <a href="t.me/ramirezzzs">меня</a>!
+
+Курсы разбиты по категориям (насколько это вообще возможно), а так же есть поиск по названию курса.
+
+Если есть желание поблагодарить меня - жми контакты, там есть реквизиты.
+
+А так же, если тебе интересна разработка, то можешь залетать <a href="t.me/EchoGame">ко мне на канал</a>.
+  `, {
+      disable_web_page_preview: true,
+      parse_mode: 'HTML',
+      ...menu_keyboard(
+          checkUserInArr(
+            ctx.from.id,
+            config.get('admins')
+          )
+      )
+    });
+});
+
+bot.action('menu', async ctx => {
+  ctx.editMessageText(`Алоха, ${ctx.from.first_name}!
+
+В этом боте ты можешь найти слитые курсы, которые есть у <a href="t.me/ramirezzzs">меня</a>!
+
+Курсы разбиты по категориям (насколько это вообще возможно), а так же есть поиск по названию курса.
+
+Если есть желание поблагодарить меня - жми контакты, там есть реквизиты.
+    `, {
+      disable_web_page_preview: true,
+      parse_mode: 'HTML',
+      ...menu_keyboard(
+          checkUserInArr(
+            ctx.from.id,
+            config.get('admins')
+          )
+      )
+    });
+});
+
+bot.action('category', async ctx => {
+  ctx.editMessageText(`
+Выберите категорию:
+  `, category_list(store.getState().courses));
+});
+
+bot.action('search', async ctx => {
+  ctx.scene.enter('searchScene');
+});
+
+bot.action('find', async ctx => {
+  ctx.scene.leave();
+  // тут написать функцию поиска
+  const searchWord = ctx.session.searchTitle.toLowerCase();
+  const finded = [];
+  const courses = store.getState().courses;
+
+
+  courses.map(course => {
+    if (course.title.toLowerCase() === searchWord || arrToLower(course.title.split(' ')).indexOf(searchWord) !== -1 || arrToLower(course.description?.split(' ')).indexOf(searchWord) !== -1) {
+      finded.push(course);
+    }
+  });
+
+  if (!Object.values(finded).length) {
+    ctx.editMessageText('Курсы по заданным ключам не найдены', Markup.inlineKeyboard([
+      Markup.button.callback('Искать заново', 'search'),
+      Markup.button.callback('Назад в меню', 'menu'),
+    ]));
+  } else {
+    ctx.editMessageText('Найден(ы) следующий(е) курс(ы):', courses_list(finded));
+  }
+
+});
+// сброс поиска
+bot.action('cancel_search', async ctx => {
+  ctx.session.searchTitle= undefined;
+  ctx.scene.leave();
+
+  return ctx.editMessageText(`В этом боте ты можешь найти слитые курсы, которые есть у <a href="t.me/ramirezzzs">меня</a>!
+
+Курсы разбиты по категориям (насколько это вообще возможно), а так же есть поиск по названию курса.
+
+Если есть желание поблагодарить меня - жми контакты, там есть реквизиты.
+`, {
+      parse_mode: "HTML",
+      disable_web_page_preview: true,
+      ...menu_keyboard(
+        checkUserInArr(
+          ctx.from.id,
+          config.get('admins')
+        )
+      )
+    });
+});
+
+
+
+bot.action('about', async ctx => {
+  ctx.editMessageText(`Не буду скрывать, что создал этого бота, что бы попробовать привлечь людей в свой канал и пичкать вас рекламой. Иначе бы я, по прежнему, раздавал курсы под хайд на лолзе. Но, быть может, вам будет полезен данный софт, который будет хранить в себе ссылки на курсы (а заодно мотивирует меня поддерживать ссылки актуальными).
+
+Вы всегда можете написать <a href="t.me/ramirezzzs">мне в личку</a> и задать вопрос по программированию. Чем смогу - помогу.
+  `, {
+      disable_web_page_preview: true,
+      parse_mode: "HTML",
+      ...Markup.inlineKeyboard([Markup.button.callback('Назад в меню', 'menu')])
+    });
+});
+
+bot.action('contacts', async ctx => {
+  ctx.editMessageText(`
+Автор этого замечательного(нет) бота - <a href="t.me/ramirezzzs">OneSadDev</a>
+
+Так же я веду <a href="t.me/EchoGame">канал про разработку</a>
+
+Если есть желание задонатить, то принимаю куда угодно и что угодно.
+
+Белый кэш - +79624334653 сбер/киви/сбп
+Крипта - в личку
+
+Немытые деньги попрошу оставить при себе, мы же, все таки, не занимаемся криминалом.
+  `, {
+    disable_web_page_preview: true,
+    parse_mode: "HTML",
+    ...Markup.inlineKeyboard([Markup.button.callback('Назад в меню', 'menu')])
+  })
+});
+
+bot.on('callback_query', async ctx => {
+  if (ctx.update.callback_query.data.split(':')[0] === 'category') {
+    const category = ctx.update.callback_query.data.split(':')[1].trim();
+    ctx.editMessageText('Выберите курс:', courses_list(store.getState().courses, category))
+  }
+
+  if (ctx.update.callback_query.data.split(':')[0] === 'course') {
+    const id = ctx.update.callback_query.data.split(':')[1].trim();
+    const course = findItemInArr(id, store.getState().courses);
+
+    ctx.editMessageText(`${course.title}
+
+${course.description  ? 'Описание: ' + course.description : 'Здесь могло быть описание'}
+
+${course.comment ? 'Мой коммент: ' + course.comment : 'Здесь мог быть мой коммент'}
+
+Если нужно просто скопипастить: ${course.url}
+`, {
+
+  disable_web_page_preview: true,
+  parse_mode: 'HTML',
+  ...Markup.inlineKeyboard([
+    Markup.button.url('Перейти к курсу', `${course.url}`),
+    Markup.button.callback('В главное меню', 'menu'),
+  ])
+})
+  }
 });
 
 (async () => {

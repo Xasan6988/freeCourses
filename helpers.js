@@ -1,9 +1,15 @@
 module.exports = {
-  checkUser(id, users, addUser) {
+  checkUserInArr(id, users) {
     if (users.indexOf(id) === -1) {
-      return true;
+      return false;
     } else {
-      return false
+      return true;
     }
+  },
+  findItemInArr(id, arr) {
+    return arr.find(item => item._id.toString() === id);
+  },
+  arrToLower(arr) {
+    return arr.map(item => item.toLowerCase());
   }
 }
