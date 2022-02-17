@@ -13,7 +13,7 @@ const searchScene = require('./Scenes/searchScene');
 
 const {checkUserInArr, findItemInArr, arrToLower} = require('./helpers');
 const { category_list, courses_list } = require('./keyboards/courses_keyboars');
-const Course = require('./models/Course');
+
 
 const store = createStore(
   rootReducer,
@@ -109,8 +109,12 @@ bot.action('find', async ctx => {
 
 
   courses.map(course => {
-    if (course.title.toLowerCase() === searchWord || arrToLower(course.title.split(' ')).indexOf(searchWord) !== -1 || arrToLower(course.description?.split(' ')).indexOf(searchWord) !== -1) {
+    if (course.title.toLowerCase() === searchWord || arrToLower(course.title.split(' ')).indexOf(searchWord) !== -1) {
       finded.push(course);
+    } else if (course.description) {
+      if (arrToLower(course.description.split(' ')).indexOf(searchWord) !== -1) {
+        finded.push(course);
+      }
     }
   });
 

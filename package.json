@@ -5,7 +5,8 @@
   "main": "bot.js",
   "scripts": {
     "dev": "nodemon bot.js",
-    "start": "node bot.js"
+    "start": "node bot.js",
+    "prod": "pm2 start bot.js"
   },
   "keywords": [
     "[js",
@@ -20,6 +21,7 @@
     "axios": "^0.26.0",
     "config": "^3.3.7",
     "mongoose": "^6.2.2",
+    "pm2": "^5.2.0",
     "redux": "^4.1.2",
     "redux-thunk": "^2.4.1",
     "telegraf": "^4.7.0"
