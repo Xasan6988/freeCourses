@@ -58,6 +58,28 @@ bot.start(async ctx => {
     });
 });
 
+bot.hears(/^[a-z | 0-9 | A-Z | а-я | А-Я]+$/, async ctx => {
+  ctx.replyWithHTML(`Алоха, ${ctx.from.first_name}!
+
+В этом боте ты можешь найти слитые курсы, которые есть у <a href="t.me/ramirezzzs">меня</a>!
+
+Курсы разбиты по категориям (насколько это вообще возможно), а так же есть поиск по названию курса.
+
+Если есть желание поблагодарить меня - жми контакты, там есть реквизиты.
+
+А так же, если тебе интересна разработка, то можешь залетать <a href="t.me/EchoGame">ко мне на канал</a>.
+    `, {
+        disable_web_page_preview: true,
+        parse_mode: 'HTML',
+        ...menu_keyboard(
+            checkUserInArr(
+              ctx.from.id,
+              config.get('admins')
+            )
+        )
+      });
+})
+
 bot.action('menu', async ctx => {
   ctx.editMessageText(`Алоха, ${ctx.from.first_name}!
 
@@ -80,7 +102,7 @@ bot.action('menu', async ctx => {
 
 bot.action('admin', async ctx => {
   if (checkUserInArr(ctx.from.id, config.get('admins'))) {
-    return ctx.editMessageText('Повеливай, админ', Markup.inlineKeyboard([
+    return ctx.editMessageText('Повелевай, админ', Markup.inlineKeyboard([
       Markup.button.callback('Реклама', 'ads'),
       Markup.button.callback('Обновить данные', 'refresh'),
       Markup.button.callback('Вернуться в меню', 'menu'),
