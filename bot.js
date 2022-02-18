@@ -249,6 +249,13 @@ bot.action('contacts', async ctx => {
   })
 });
 
+bot.action('backToCategory', async ctx => {
+  const category = ctx.session.selectCategory;
+  ctx.session.selectCategory = undefined;
+
+  ctx.editMessageText(`Выребрите курс: `, courses_list(store.getState().courses, category));
+});
+
 bot.on('callback_query', async ctx => {
   if (ctx.update.callback_query.data.split(':')[0] === 'category') {
     const category = ctx.update.callback_query.data.split(':')[1].trim();
@@ -259,6 +266,8 @@ bot.on('callback_query', async ctx => {
     const id = ctx.update.callback_query.data.split(':')[1].trim();
     const course = findItemInArr(id, store.getState().courses);
 
+    ctx.session.selectCategory = course.category;
+
     ctx.editMessageText(`${course.title}
 
 ${course.description  ? 'Описание: ' + course.description : 'Здесь могло быть описание'}
@@ -267,14 +276,14 @@ ${course.comment ? 'Мой коммент: ' + course.comment : 'Здесь мо
 
 Если нужно просто скопипастить: ${course.url}
 `, {
-
-  disable_web_page_preview: true,
-  parse_mode: 'HTML',
-  ...Markup.inlineKeyboard([
-    Markup.button.url('Перейти к курсу', `${course.url}`),
-    Markup.button.callback('В главное меню', 'menu'),
-  ])
-})
+    disable_web_page_preview: true,
+    parse_mode: 'HTML',
+    ...Markup.inlineKeyboard([
+      Markup.button.url('Перейти к курсу', `${course.url}`),
+      Markup.button.callback('Назад', 'backToCategory'),
+      Markup.button.callback('В главное меню', 'menu'),
+    ])
+  })
   }
 });
 
