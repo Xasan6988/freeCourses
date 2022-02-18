@@ -7,13 +7,13 @@ const courses_list = (courses, category = '') => {
 
     return Markup.inlineKeyboard([
       ...sortedCourses.map(course => Markup.button.callback(course.title, `course:${course._id}`)),
-      Markup.button.callback('Назад в меню', 'menu')
-    ], {wrap: (btn, index, currentRow) => currentRow.length >= index / 2})
+      Markup.button.callback('Назад в категории', 'category')
+    ], {wrap: (btn, index, currentRow) => currentRow.length >= index / (currentRow.length - 2)});
   } else {
     return Markup.inlineKeyboard([
       ...courses.map(course => Markup.button.callback(course.title, `course:${course._id}`)),
-      Markup.button.callback('Назад в меню', 'menu')
-    ], {wrap: (btn, index, currentRow) => currentRow.length >= index / 2})
+      Markup.button.callback('Назад в категории', 'category')
+    ], {wrap: (btn, index, currentRow) => currentRow.length >= index / (currentRow.length - 2)});
   }
 }
 
@@ -29,7 +29,7 @@ const category_list = (courses) => {
   return Markup.inlineKeyboard([
     ...uniqCategory.map(category => Markup.button.callback(`${category}`, `category:${category}`)),
     Markup.button.callback('Назад в меню', 'menu')
-  ], {wrap: (btn, index, currentRow) => currentRow.length >= index / 2})
+  ], {wrap: (btn, index, currentRow) => currentRow.length >= index / currentRow.length - 1});
 }
 
 module.exports = {courses_list, category_list}

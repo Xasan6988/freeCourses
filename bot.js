@@ -8,11 +8,11 @@ const {fetchCourse, fetchUsers, addUser} = require('./redux/actions');
 const { default: thunk } = require('redux-thunk');
 
 const {menu_keyboard} = require('./keyboards/menu_keyboard');
+const { category_list, courses_list } = require('./keyboards/courses_keyboards');
 const adsScene = require('./Scenes/adsScene');
 const searchScene = require('./Scenes/searchScene');
 
 const {checkUserInArr, findItemInArr, arrToLower} = require('./helpers');
-const { category_list, courses_list } = require('./keyboards/courses_keyboars');
 
 
 const store = createStore(
@@ -82,13 +82,20 @@ bot.action('admin', async ctx => {
   if (checkUserInArr(ctx.from.id, config.get('admins'))) {
     return ctx.editMessageText('Повеливай, админ', Markup.inlineKeyboard([
       Markup.button.callback('Реклама', 'ads'),
+      Markup.button.callback('Обновить данные', 'refresh'),
       Markup.button.callback('Вернуться в меню', 'menu'),
     ], {wrap: (btn, index, currentRow) => currentRow.length >= index / 2}));
   } else {
     ctx.replyWithHTML('Ухади, ты не админ');
     ctx.replyWithHTML('Выберите один из пунктов меню', menu_keyboard());
   }
-})
+});
+
+bot.action('refresh', async ctx => {
+  store.dispatch(fetchCourse());
+  store.dispatch(fetchUsers());
+  await ctx.editMessageText('Обновленно', Markup.inlineKeyboard([Markup.button.callback('В меню', 'menu')]));
+});
 
 bot.action('category', async ctx => {
   ctx.editMessageText(`
