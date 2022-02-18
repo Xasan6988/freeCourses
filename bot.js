@@ -39,7 +39,7 @@ bot.start(async ctx => {
   }
   ctx.replyWithHTML(`Алоха, ${ctx.from.first_name}!
 
-В этом боте ты можешь найти слитые курсы, которые есть у <a href="t.me/ramirezzzs">меня</a>!
+В этом боте ты можешь найти слитые курсы, которые есть у <a href="t.me/OneSadDev">меня</a>!
 
 Курсы разбиты по категориям (насколько это вообще возможно), а так же есть поиск по названию курса.
 
@@ -61,7 +61,7 @@ bot.start(async ctx => {
 bot.hears(/^[a-z | 0-9 | A-Z | а-я | А-Я]+$/, async ctx => {
   ctx.replyWithHTML(`Алоха, ${ctx.from.first_name}!
 
-В этом боте ты можешь найти слитые курсы, которые есть у <a href="t.me/ramirezzzs">меня</a>!
+В этом боте ты можешь найти слитые курсы, которые есть у <a href="t.me/OneSadDev">меня</a>!
 
 Курсы разбиты по категориям (насколько это вообще возможно), а так же есть поиск по названию курса.
 
@@ -83,7 +83,7 @@ bot.hears(/^[a-z | 0-9 | A-Z | а-я | А-Я]+$/, async ctx => {
 bot.action('menu', async ctx => {
   ctx.editMessageText(`Алоха, ${ctx.from.first_name}!
 
-В этом боте ты можешь найти слитые курсы, которые есть у <a href="t.me/ramirezzzs">меня</a>!
+В этом боте ты можешь найти слитые курсы, которые есть у <a href="t.me/OneSadDev">меня</a>!
 
 Курсы разбиты по категориям (насколько это вообще возможно), а так же есть поиск по названию курса.
 
@@ -162,7 +162,7 @@ bot.action('cancel_search', async ctx => {
   ctx.session.searchTitle= undefined;
   ctx.scene.leave();
 
-  return ctx.editMessageText(`В этом боте ты можешь найти слитые курсы, которые есть у <a href="t.me/ramirezzzs">меня</a>!
+  return ctx.editMessageText(`В этом боте ты можешь найти слитые курсы, которые есть у <a href="t.me/OneSadDev">меня</a>!
 
 Курсы разбиты по категориям (насколько это вообще возможно), а так же есть поиск по названию курса.
 
@@ -199,7 +199,7 @@ bot.action('startAds', async ctx => {
   ctx.session.ads = undefined;
   ctx.replyWithHTML(`Алоха, ${ctx.from.first_name}!
 
-В этом боте ты можешь найти слитые курсы, которые есть у <a href="t.me/ramirezzzs">меня</a>!
+В этом боте ты можешь найти слитые курсы, которые есть у <a href="t.me/OneSadDev">меня</a>!
 
 Курсы разбиты по категориям (насколько это вообще возможно), а так же есть поиск по названию курса.
 
@@ -224,7 +224,7 @@ bot.action('clear', async ctx => {
   ctx.session.clear = undefined;
   ctx.editMessageText(`Алоха, ${ctx.from.first_name}!
 
-В этом боте ты можешь найти слитые курсы, которые есть у <a href="t.me/ramirezzzs">меня</a>!
+В этом боте ты можешь найти слитые курсы, которые есть у <a href="t.me/OneSadDev">меня</a>!
 
 Курсы разбиты по категориям (насколько это вообще возможно), а так же есть поиск по названию курса.
 
@@ -244,7 +244,7 @@ bot.action('clear', async ctx => {
 bot.action('about', async ctx => {
   ctx.editMessageText(`Не буду скрывать, что создал этого бота, что бы попробовать привлечь людей в свой канал и пичкать вас рекламой. Иначе бы я, по прежнему, раздавал курсы под хайд на лолзе. Но, быть может, вам будет полезен данный софт, который будет хранить в себе ссылки на курсы (а заодно мотивирует меня поддерживать ссылки актуальными).
 
-Вы всегда можете написать <a href="t.me/ramirezzzs">мне в личку</a> и задать вопрос по программированию. Чем смогу - помогу.
+Вы всегда можете написать <a href="t.me/OneSadDev">мне в личку</a> и задать вопрос по программированию. Чем смогу - помогу.
   `, {
       disable_web_page_preview: true,
       parse_mode: "HTML",
@@ -254,7 +254,7 @@ bot.action('about', async ctx => {
 
 bot.action('contacts', async ctx => {
   ctx.editMessageText(`
-Автор этого замечательного(нет) бота - <a href="t.me/ramirezzzs">OneSadDev</a>
+Автор этого замечательного(нет) бота - <a href="t.me/OneSadDev">OneSadDev</a>
 
 Так же я веду <a href="t.me/EchoGame">канал про разработку</a>
 
