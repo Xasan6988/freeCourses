@@ -29,7 +29,7 @@ const category_list = (courses) => {
   return Markup.inlineKeyboard([
     ...uniqCategory.map(category => Markup.button.callback(`${category}`, `category:${category}`)),
     Markup.button.callback('Назад в меню', 'menu')
-  ], {wrap: (btn, index, currentRow) => currentRow.length >= index / currentRow.length - 1});
+  ], {wrap: (btn, index, currentRow) => currentRow.length >= index / currentRow.length - 2});
 }
 
 module.exports = {courses_list, category_list}
