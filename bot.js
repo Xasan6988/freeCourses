@@ -39,6 +39,9 @@ bot.start(async ctx => {
     // добавляем пользователя
     store.dispatch(addUser(ctx.from.id));
   }
+  if (!checkUserInArr(ctx.from.id, store.getState().dayVisits)) {
+    store.dispatch(addVisits(ctx.from.id));
+  }
   ctx.replyWithHTML(`Алоха, ${ctx.from.first_name}!
 
 В этом боте ты можешь найти слитые курсы, которые есть у <a href="t.me/OneSadDev">меня</a>!
@@ -61,6 +64,9 @@ bot.start(async ctx => {
 });
 
 bot.hears(/^[a-z | 0-9 | A-Z | а-я | А-Я]+$/, async ctx => {
+  if (!checkUserInArr(ctx.from.id, store.getState().dayVisits)) {
+    store.dispatch(addVisits(ctx.from.id));
+  }
   ctx.replyWithHTML(`Алоха, ${ctx.from.first_name}!
 
 В этом боте ты можешь найти слитые курсы, которые есть у <a href="t.me/OneSadDev">меня</a>!

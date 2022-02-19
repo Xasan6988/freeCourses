@@ -47,9 +47,9 @@ const clearVisits = () => {
 };
 
 const addVisits = (id) => {
-  return {type: ADD_VISITS, payload: id}
-}
+  return {type: ADD_VISITS, payload: id};
+};
 
 module.exports = {
   fetchCourse, fetchUsers, addUser, clearVisits, addVisits
-}
+};
