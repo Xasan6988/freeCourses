@@ -2,6 +2,8 @@ const {Telegraf, Markup, session, Scenes: {Stage}} = require('telegraf');
 const mongo = require('mongoose');
 const config = require('config');
 
+const User = require('./models/User');
+
 const {createStore, applyMiddleware} = require('redux');
 const rootReducer = require("./redux/rootReducer");
 const {fetchCourse, fetchUsers, addUser} = require('./redux/actions');
@@ -105,6 +107,7 @@ bot.action('admin', async ctx => {
     return ctx.editMessageText('Повелевай, админ', Markup.inlineKeyboard([
       Markup.button.callback('Реклама', 'ads'),
       Markup.button.callback('Обновить данные', 'refresh'),
+      Markup.button.callback('Получить сводку', 'symmaryOfVisits'),
       Markup.button.callback('Вернуться в меню', 'menu'),
     ], {wrap: (btn, index, currentRow) => currentRow.length >= index / 2}));
   } else {
@@ -112,6 +115,20 @@ bot.action('admin', async ctx => {
     ctx.replyWithHTML('Выберите один из пунктов меню', menu_keyboard());
   }
 });
+
+bot.action('symmaryOfVisits', async ctx => {
+  const users = await User.find();
+
+  ctx.editMessageText(
+    `
+Количество юзеров в базе данных: ${users.length}
+  `,
+    {
+      parse_mode: 'HTML',
+      ...Markup.inlineKeyboard([Markup.button.callback('В меню', 'menu'), Markup.button.callback('В админку', 'admin')])
+    }
+  );
+})
 
 bot.action('refresh', async ctx => {
   store.dispatch(fetchCourse());
