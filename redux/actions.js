@@ -1,4 +1,4 @@
-const {FETCH_COURSES, FETCH_USERS, ADD_USER} = require('./types');
+const {FETCH_COURSES, FETCH_USERS, ADD_USER, CLEAR_VISITS, ADD_VISITS} = require('./types');
 
 const User = require('../models/User');
 const Course = require('../models/Course');
@@ -42,6 +42,14 @@ const addUser = (userId) => {
   };
 };
 
+const clearVisits = () => {
+  return {type: CLEAR_VISITS};
+};
+
+const addVisits = (id) => {
+  return {type: ADD_VISITS, payload: id}
+}
+
 module.exports = {
-  fetchCourse, fetchUsers, addUser
+  fetchCourse, fetchUsers, addUser, clearVisits, addVisits
 }

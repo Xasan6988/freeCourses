@@ -11,5 +11,12 @@ module.exports = {
   },
   arrToLower(arr) {
     return arr.map(item => item.toLowerCase());
+  },
+  HowMuchTimeBeforeMidnight(time) {
+    const midnight = new Date(new Date().getFullYear() + '', new Date().getMonth() + '', new Date().getDate() + '', 23 + '', 59 + '', 59 + '');
+
+    const diff = new Date(midnight.getTime() - time);
+
+    return diff;
   }
 }

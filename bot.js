@@ -6,7 +6,7 @@ const User = require('./models/User');
 
 const {createStore, applyMiddleware} = require('redux');
 const rootReducer = require("./redux/rootReducer");
-const {fetchCourse, fetchUsers, addUser} = require('./redux/actions');
+const {fetchCourse, fetchUsers, addUser, addVisits, clearVisits} = require('./redux/actions');
 const { default: thunk } = require('redux-thunk');
 
 const {menu_keyboard} = require('./keyboards/menu_keyboard');
@@ -14,7 +14,7 @@ const { category_list, courses_list } = require('./keyboards/courses_keyboards')
 const adsScene = require('./Scenes/adsScene');
 const searchScene = require('./Scenes/searchScene');
 
-const {checkUserInArr, findItemInArr, arrToLower} = require('./helpers');
+const {checkUserInArr, findItemInArr, arrToLower, HowMuchTimeBeforeMidnight} = require('./helpers');
 
 
 const store = createStore(
@@ -83,6 +83,10 @@ bot.hears(/^[a-z | 0-9 | A-Z | а-я | А-Я]+$/, async ctx => {
 })
 
 bot.action('menu', async ctx => {
+  if (!checkUserInArr(ctx.from.id, store.getState().dayVisits)) {
+    store.dispatch(addVisits(ctx.from.id));
+  }
+
   ctx.editMessageText(`Алоха, ${ctx.from.first_name}!
 
 В этом боте ты можешь найти слитые курсы, которые есть у <a href="t.me/OneSadDev">меня</a>!
@@ -122,6 +126,7 @@ bot.action('symmaryOfVisits', async ctx => {
   ctx.editMessageText(
     `
 Количество юзеров в базе данных: ${users.length}
+Количество активных юзеров за последние сутки: ${store.getState().dayVisits.length}
   `,
     {
       parse_mode: 'HTML',
@@ -336,6 +341,11 @@ ${course.comment ? 'Мой коммент: ' + course.comment : 'Здесь мо
     store.dispatch(fetchUsers());
     bot.launch();
     console.log('App has been started...');
+    setTimeout(() => {
+      setInterval(() => {
+        store.dispatch(clearVisits());
+      }, 1000 * 60 * 60 * 24);
+    }, HowMuchTimeBeforeMidnight(Date.now()))
   } catch (e) {
     console.log(`При подключении к БД и запуске бота произошла ошибка ${e.message}`);
   }
