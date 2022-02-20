@@ -17,6 +17,6 @@ module.exports = {
 
     const diff = new Date(midnight.getTime() - time);
 
-    return diff;
+    return diff.getTime();
   }
 }

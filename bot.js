@@ -348,6 +348,7 @@ ${course.comment ? 'Мой коммент: ' + course.comment : 'Здесь мо
     bot.launch();
     console.log('App has been started...');
     setTimeout(() => {
+      store.dispatch(clearVisits());
       setInterval(() => {
         store.dispatch(clearVisits());
       }, 1000 * 60 * 60 * 24);
