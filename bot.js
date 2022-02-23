@@ -218,7 +218,11 @@ bot.action('startAds', async ctx => {
   const users = store.getState().users;
   const ads = ctx.session.ads;
   users.map(async (user) => {
-    await ctx.telegram.copyMessage(user, config.get('gal'), ads.id);
+    try {
+      await ctx.telegram.copyMessage(user, config.get('gal'), ads.message_id);
+    } catch (e) {
+      console.log(`Ooops, some block: ${e.message}`);
+    }
   });
   ctx.session.ads = undefined;
   ctx.replyWithHTML(`Алоха, ${ctx.from.first_name}!
