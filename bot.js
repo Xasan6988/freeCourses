@@ -218,11 +218,7 @@ bot.action('startAds', async ctx => {
   const users = store.getState().users;
   const ads = ctx.session.ads;
   users.map(async (user) => {
-    if (ads.photo) {
-      await ctx.telegram.sendPhoto(user, ads.photo, {caption: ads.caption});
-    } else {
-      await ctx.telegram.sendMessage(user, ads.caption);
-    }
+    await ctx.telegram.copyMessage(user, config.get('gal'), ads.id);
   });
   ctx.session.ads = undefined;
   ctx.replyWithHTML(`Алоха, ${ctx.from.first_name}!
