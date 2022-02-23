@@ -1,4 +1,4 @@
-const {FETCH_COURSES, FETCH_USERS, ADD_USER, CLEAR_VISITS, ADD_VISITS} = require('./types');
+const {FETCH_COURSES, FETCH_USERS, ADD_USER, CLEAR_VISITS, ADD_VISITS, DELETE_USER} = require('./types');
 
 const User = require('../models/User');
 const Course = require('../models/Course');
@@ -42,6 +42,18 @@ const addUser = (userId) => {
   };
 };
 
+const deleteUser = (userId) => {
+  return async dispatch => {
+    try {
+      await User.findOneAndDelete({userId});
+
+      dispatch({type: DELETE_USER, payload: userId})
+    } catch (e) {
+      console.log(`При попытке удалить юзера произошла ошибка ${e.message}`);
+    }
+  }
+}
+
 const clearVisits = () => {
   return {type: CLEAR_VISITS};
 };
@@ -51,5 +63,5 @@ const addVisits = (id) => {
 };
 
 module.exports = {
-  fetchCourse, fetchUsers, addUser, clearVisits, addVisits
+  fetchCourse, fetchUsers, addUser, clearVisits, addVisits, deleteUser
 };

@@ -1,4 +1,4 @@
-const {FETCH_COURSES, FETCH_USERS, ADD_USER, ADD_VISITS, CLEAR_VISITS} = require('./types');
+const {FETCH_COURSES, FETCH_USERS, ADD_USER, ADD_VISITS, CLEAR_VISITS, DELETE_USER} = require('./types');
 
 const initialState = {
   users: [],
@@ -17,6 +17,8 @@ function rootReducer(state = initialState, action) {
     return {...state, dayVisits: [...state.dayVisits, action.payload]};
   } else if (action.type === CLEAR_VISITS) {
     return {...state, dayVisits: []};
+  } else if (action.type === DELETE_USER) {
+    return {...state, users: [...state.users.filter(user => user.userId !== action.payload)]};
   }
   return state;
 }

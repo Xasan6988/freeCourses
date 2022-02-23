@@ -1,12 +1,13 @@
 const {Telegraf, Markup, session, Scenes: {Stage}} = require('telegraf');
 const mongo = require('mongoose');
 const config = require('config');
+const axios = require('axios');
 
 const User = require('./models/User');
 
 const {createStore, applyMiddleware} = require('redux');
 const rootReducer = require("./redux/rootReducer");
-const {fetchCourse, fetchUsers, addUser, addVisits, clearVisits} = require('./redux/actions');
+const {fetchCourse, fetchUsers, addUser, addVisits, clearVisits, deleteUser} = require('./redux/actions');
 const { default: thunk } = require('redux-thunk');
 
 const {menu_keyboard} = require('./keyboards/menu_keyboard');
@@ -15,6 +16,7 @@ const adsScene = require('./Scenes/adsScene');
 const searchScene = require('./Scenes/searchScene');
 
 const {checkUserInArr, findItemInArr, arrToLower, HowMuchTimeBeforeMidnight} = require('./helpers');
+const { csonParser } = require('config/parser');
 
 
 const store = createStore(
@@ -27,11 +29,6 @@ const bot = new Telegraf(config.get('TOKEN'));
 const stage = new Stage([searchScene, adsScene]);
 
 bot.use(session(), stage.middleware());
-
-bot.use((ctx, next) => {
-  console.log(ctx.from.id);
-  next();
-});
 
 bot.start(async ctx => {
   // Проверяем наличие пользователя в базе
@@ -217,13 +214,19 @@ bot.action('startAds', async ctx => {
   ctx.scene.leave();
   const users = store.getState().users;
   const ads = ctx.session.ads;
-  users.map(async (user) => {
+  users.map(async user => {
     try {
+      const res = await axios.get(`https://api.telegram.org/bot${config.get('TOKEN')}/sendMessage?chat_id=${user}&text=ads`);
+
+      await ctx.deleteMessage(res.data.result.message_id);
       await ctx.telegram.copyMessage(user, config.get('gal'), ads.message_id);
+
     } catch (e) {
       console.log(`Ooops, some block: ${e.message}`);
+      await store.dispatch(deleteUser(user));
     }
   });
+
   ctx.session.ads = undefined;
   ctx.replyWithHTML(`Алоха, ${ctx.from.first_name}!
 
