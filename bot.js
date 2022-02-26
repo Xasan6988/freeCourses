@@ -223,7 +223,6 @@ bot.action('startAds', async ctx => {
 
     } catch (e) {
       console.log(`Ooops, some block: ${e.message}`);
-      await store.dispatch(deleteUser(user));
     }
   });
 
