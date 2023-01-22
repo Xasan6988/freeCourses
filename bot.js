@@ -1,22 +1,58 @@
-const {Telegraf, Markup, session, Scenes: {Stage}} = require('telegraf');
+const {
+  Telegraf,
+  Markup,
+  session,
+  Scenes: {
+    Stage
+  }
+} = require('telegraf');
 const mongo = require('mongoose');
 const config = require('config');
 const axios = require('axios');
 
 const User = require('./models/User');
 
-const {createStore, applyMiddleware} = require('redux');
+const {
+  createStore,
+  applyMiddleware
+} = require('redux');
 const rootReducer = require("./redux/rootReducer");
-const {fetchCourse, fetchUsers, addUser, addVisits, clearVisits, deleteUser} = require('./redux/actions');
-const { default: thunk } = require('redux-thunk');
+const {
+  fetchCourse,
+  fetchUsers,
+  addUser,
+  addVisits,
+  clearVisits,
+  deleteUser
+} = require('./redux/actions');
+const {
+  default: thunk
+} = require('redux-thunk');
 
-const {menu_keyboard} = require('./keyboards/menu_keyboard');
-const { category_list, courses_list } = require('./keyboards/courses_keyboards');
+const {
+  menu_keyboard
+} = require('./keyboards/menu_keyboard');
+const {
+  backupKeyboard
+} = require('./keyboards/backup_keyboard');
+const {
+  category_list,
+  courses_list
+} = require('./keyboards/courses_keyboards');
 const adsScene = require('./Scenes/adsScene');
 const searchScene = require('./Scenes/searchScene');
 
-const {checkUserInArr, findItemInArr, arrToLower, HowMuchTimeBeforeMidnight} = require('./helpers');
-const { csonParser } = require('config/parser');
+const {
+  checkUserInArr,
+  findItemInArr,
+  arrToLower,
+  HowMuchTimeBeforeMidnight
+} = require('./helpers');
+const {
+  csonParser
+} = require('config/parser');
+const Course = require('./models/Course');
+const fs = require('fs')
 
 
 const store = createStore(
@@ -49,15 +85,15 @@ bot.start(async ctx => {
 
 А так же, если тебе интересна разработка, то можешь залетать <a href="t.me/EchoGame">ко мне на канал</a>.
   `, {
-      disable_web_page_preview: true,
-      parse_mode: 'HTML',
-      ...menu_keyboard(
-          checkUserInArr(
-            ctx.from.id,
-            config.get('admins')
-          )
+    disable_web_page_preview: true,
+    parse_mode: 'HTML',
+    ...menu_keyboard(
+      checkUserInArr(
+        ctx.from.id,
+        config.get('admins')
       )
-    });
+    )
+  });
 });
 
 bot.hears(/^[a-z | 0-9 | A-Z | а-я | А-Я]+$/, async ctx => {
@@ -74,15 +110,15 @@ bot.hears(/^[a-z | 0-9 | A-Z | а-я | А-Я]+$/, async ctx => {
 
 А так же, если тебе интересна разработка, то можешь залетать <a href="t.me/EchoGame">ко мне на канал</a>.
     `, {
-        disable_web_page_preview: true,
-        parse_mode: 'HTML',
-        ...menu_keyboard(
-            checkUserInArr(
-              ctx.from.id,
-              config.get('admins')
-            )
-        )
-      });
+    disable_web_page_preview: true,
+    parse_mode: 'HTML',
+    ...menu_keyboard(
+      checkUserInArr(
+        ctx.from.id,
+        config.get('admins')
+      )
+    )
+  });
 })
 
 bot.action('menu', async ctx => {
@@ -98,15 +134,15 @@ bot.action('menu', async ctx => {
 
 Если есть желание поблагодарить меня - жми контакты, там есть реквизиты.
     `, {
-      disable_web_page_preview: true,
-      parse_mode: 'HTML',
-      ...menu_keyboard(
-          checkUserInArr(
-            ctx.from.id,
-            config.get('admins')
-          )
+    disable_web_page_preview: true,
+    parse_mode: 'HTML',
+    ...menu_keyboard(
+      checkUserInArr(
+        ctx.from.id,
+        config.get('admins')
       )
-    });
+    )
+  });
 });
 
 bot.action('admin', async ctx => {
@@ -115,11 +151,102 @@ bot.action('admin', async ctx => {
       Markup.button.callback('Реклама', 'ads'),
       Markup.button.callback('Обновить данные', 'refresh'),
       Markup.button.callback('Получить сводку', 'symmaryOfVisits'),
+      Markup.button.callback('Бекап', 'backup'),
       Markup.button.callback('Вернуться в меню', 'menu'),
-    ], {wrap: (btn, index, currentRow) => currentRow.length >= index / 2}));
+    ], {
+      wrap: (btn, index, currentRow) => currentRow.length >= index / 2
+    }));
   } else {
     ctx.replyWithHTML('Ухади, ты не админ');
     ctx.replyWithHTML('Выберите один из пунктов меню', menu_keyboard());
+  }
+});
+
+bot.action('backup', async ctx => {
+  try {
+    ctx.session.backup = {};
+    ctx.reply('Choose load...', backupKeyboard);
+  } catch (e) {
+    console.log(e)
+  }
+})
+
+bot.action('upload', async context => {
+  try {
+    context.reply('Send backup...');
+    bot.on('document', async ctx => {
+      await context.telegram.getFileLink(ctx.message.document.file_id).then(url => {
+
+        axios({
+          url: url.href,
+          responseType: 'stream'
+        }).then(response => {
+          return new Promise((resolve, reject) => {
+            response.data.pipe(fs.createWriteStream(`backups/upload.json`))
+              .on('finish', () => console.log('File is saved.'))
+              .on('error', e => console.log(`An error has occured ${e}`));
+          });
+        })
+      });
+
+      fs.readFile('backups/upload.json', (err, data) => {
+        // User.deleteMany({}, (err) => {
+        //   if (err) console.log(err)
+        // });
+        User.insertMany(JSON.parse(data), (err, models) => {
+          if (err) console.log(err);
+        });
+        // Course.deleteMany({}, (err) => {
+        //   if (err) console.log(err)
+        // });
+        // Course.insertMany(JSON.parse(data).products, (err, models) => {
+        //   if (err) console.log(err);
+        // });
+
+        ctx.reply('DB was updated', Markup.inlineKeyboard([
+          Markup.button.callback('Реклама', 'ads'),
+          Markup.button.callback('Обновить данные', 'refresh'),
+          Markup.button.callback('Получить сводку', 'symmaryOfVisits'),
+          Markup.button.callback('Бекап', 'backup'),
+          Markup.button.callback('Вернуться в меню', 'menu'),
+        ], {
+          wrap: (btn, index, currentRow) => currentRow.length >= index / 2
+        }));
+      })
+
+    });
+  } catch (e) {
+    console.log(e)
+  }
+});
+
+bot.action('download', async ctx => {
+  try {
+    ctx.session.backup.status = 'download';
+    const collections = {
+      users: await User.find(),
+      courses: await Course.find(),
+    }
+
+    fs.writeFile('./backups/backup.json', JSON.stringify(collections), (err) => {
+      if (err) throw new Error();
+
+      // const mailer = new Mailer();
+
+
+      // mailer.sendMail('238136@mail.ru', 'test', '', {
+      //   filename: "backup.json",
+      //   path: './backups/backup.json'
+      // });
+
+      ctx.replyWithDocument({
+        filename: 'backup.json',
+        source: './backups/backup.json'
+      })
+    })
+    ctx.session.backup = {};
+  } catch (e) {
+    console.log(e);
   }
 });
 
@@ -130,8 +257,7 @@ bot.action('symmaryOfVisits', async ctx => {
     `
 Количество юзеров в базе данных: ${users.length}
 Количество активных юзеров за последние сутки: ${store.getState().dayVisits.length}
-  `,
-    {
+  `, {
       parse_mode: 'HTML',
       ...Markup.inlineKeyboard([Markup.button.callback('В меню', 'menu'), Markup.button.callback('В админку', 'admin')])
     }
@@ -184,7 +310,7 @@ bot.action('find', async ctx => {
 });
 // сброс поиска
 bot.action('cancel_search', async ctx => {
-  ctx.session.searchTitle= undefined;
+  ctx.session.searchTitle = undefined;
   ctx.scene.leave();
 
   return ctx.editMessageText(`В этом боте ты можешь найти слитые курсы, которые есть у <a href="t.me/OneSadDev">меня</a>!
@@ -193,15 +319,15 @@ bot.action('cancel_search', async ctx => {
 
 Если есть желание поблагодарить меня - жми контакты, там есть реквизиты.
 `, {
-      parse_mode: "HTML",
-      disable_web_page_preview: true,
-      ...menu_keyboard(
-        checkUserInArr(
-          ctx.from.id,
-          config.get('admins')
-        )
+    parse_mode: "HTML",
+    disable_web_page_preview: true,
+    ...menu_keyboard(
+      checkUserInArr(
+        ctx.from.id,
+        config.get('admins')
       )
-    });
+    )
+  });
 });
 
 bot.action('ads', async ctx => {
@@ -213,16 +339,24 @@ bot.action('ads', async ctx => {
 bot.action('startAds', async ctx => {
   ctx.scene.leave();
   const users = store.getState().users;
+  // const users = [config.get('gal'), 5781915083]
+
   const ads = ctx.session.ads;
+  // console.log(users)
+  // console.log(ads)
   users.map(async user => {
     try {
-      const res = await axios.get(`https://api.telegram.org/bot${config.get('TOKEN')}/sendMessage?chat_id=${user}&text=ads`);
+      const res = await axios.get(`https://api.telegram.org/bot${config.get('TOKEN')}/sendMessage?chat_id=${user}&text=${ads}`);
 
-      await ctx.deleteMessage(res.data.result.message_id);
+      console.log(res.data)
+      // console.log(config.get('gal'))
+      // return
+      await ctx.telegram.deleteMessage(res.data.result.chat.id, res.data.result.message_id);
       await ctx.telegram.copyMessage(user, config.get('gal'), ads.message_id);
 
     } catch (e) {
       console.log(`Ooops, some block: ${e.message}`);
+      // console.log(e)
     }
   });
 
@@ -237,15 +371,15 @@ bot.action('startAds', async ctx => {
 
 А так же, если тебе интересна разработка, то можешь залетать <a href="t.me/EchoGame">ко мне на канал</a>.
   `, {
-      disable_web_page_preview: true,
-      parse_mode: 'HTML',
-      ...menu_keyboard(
-          checkUserInArr(
-            ctx.from.id,
-            config.get('admins')
-          )
+    disable_web_page_preview: true,
+    parse_mode: 'HTML',
+    ...menu_keyboard(
+      checkUserInArr(
+        ctx.from.id,
+        config.get('admins')
       )
-    });
+    )
+  });
 });
 
 bot.action('clear', async ctx => {
@@ -260,15 +394,15 @@ bot.action('clear', async ctx => {
 
 Если есть желание поблагодарить меня - жми контакты, там есть реквизиты.
       `, {
-        disable_web_page_preview: true,
-        parse_mode: 'HTML',
-        ...menu_keyboard(
-            checkUserInArr(
-              ctx.from.id,
-              config.get('admins')
-            )
-        )
-      });
+    disable_web_page_preview: true,
+    parse_mode: 'HTML',
+    ...menu_keyboard(
+      checkUserInArr(
+        ctx.from.id,
+        config.get('admins')
+      )
+    )
+  });
 });
 
 bot.action('about', async ctx => {
@@ -276,10 +410,10 @@ bot.action('about', async ctx => {
 
 Вы всегда можете написать <a href="t.me/OneSadDev">мне в личку</a> и задать вопрос по программированию. Чем смогу - помогу.
   `, {
-      disable_web_page_preview: true,
-      parse_mode: "HTML",
-      ...Markup.inlineKeyboard([Markup.button.callback('Назад в меню', 'menu')])
-    });
+    disable_web_page_preview: true,
+    parse_mode: "HTML",
+    ...Markup.inlineKeyboard([Markup.button.callback('Назад в меню', 'menu')])
+  });
 });
 
 bot.action('contacts', async ctx => {
@@ -328,14 +462,14 @@ ${course.comment ? 'Мой коммент: ' + course.comment : 'Здесь мо
 
 Если нужно просто скопипастить: ${course.url}
 `, {
-    disable_web_page_preview: true,
-    parse_mode: 'HTML',
-    ...Markup.inlineKeyboard([
-      Markup.button.url('Перейти к курсу', `${course.url}`),
-      Markup.button.callback('Назад', 'backToCategory'),
-      Markup.button.callback('В главное меню', 'menu'),
-    ])
-  })
+      disable_web_page_preview: true,
+      parse_mode: 'HTML',
+      ...Markup.inlineKeyboard([
+        Markup.button.url('Перейти к курсу', `${course.url}`),
+        Markup.button.callback('Назад', 'backToCategory'),
+        Markup.button.callback('В главное меню', 'menu'),
+      ])
+    })
   }
 });
 
