@@ -6,6 +6,8 @@ const {
     Stage
   }
 } = require('telegraf');
+
+const utf8 = require('utf8')
 const mongo = require('mongoose');
 const config = require('config');
 const axios = require('axios');
@@ -473,6 +475,27 @@ ${course.comment ? 'Мой коммент: ' + course.comment : 'Здесь мо
   }
 });
 
+const activeSpam = async () => {
+  const users = await User.find()
+  // console.log(users)
+
+  const text = 'Bot vkluchen ne vsegda, poetomy dopisal opoveshenie pri vkluchenii. \n\nMozet budet komy polezno'
+
+  users.map(async user => {
+    try {
+      const res = await axios.get(`https://api.telegram.org/bot${config.get('TOKEN')}/sendMessage?chat_id=${user.userId}&text=${utf8.decode(text)}`);
+
+      // await ctx.telegram.deleteMessage(res.data.result.chat.id, res.data.result.message_id);
+      // await ctx.telegram.copyMessage(user, config.get('gal'), ads.message_id);
+
+    } catch (e) {
+      console.log(`Ooops, some block: ${e.message}`);
+      // console.log(e)
+    }
+  })
+
+}
+
 (async () => {
   try {
     mongo.connect(config.get('mongo'), {
@@ -483,6 +506,7 @@ ${course.comment ? 'Мой коммент: ' + course.comment : 'Здесь мо
     store.dispatch(fetchUsers());
     bot.launch();
     console.log('App has been started...');
+    activeSpam();
     setTimeout(() => {
       store.dispatch(clearVisits());
       setInterval(() => {
