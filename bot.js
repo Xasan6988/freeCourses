@@ -479,7 +479,7 @@ const activeSpam = async () => {
   const users = await User.find()
   // console.log(users)
 
-  const text = 'Bot vkluchen ne vsegda, poetomy dopisal opoveshenie pri vkluchenii. \n\nMozet budet komy polezno'
+  const text = 'Online'
 
   users.map(async user => {
     try {
