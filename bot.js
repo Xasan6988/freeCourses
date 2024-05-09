@@ -184,26 +184,31 @@ bot.action('upload', async context => {
           responseType: 'stream'
         }).then(response => {
           return new Promise((resolve, reject) => {
-            response.data.pipe(fs.createWriteStream(`backups/upload.json`))
+            response.data.pipe(fs.createWriteStream(`./backups/upload.json`))
               .on('finish', () => console.log('File is saved.'))
               .on('error', e => console.log(`An error has occured ${e}`));
           });
         })
       });
 
-      fs.readFile('backups/upload.json', (err, data) => {
+      fs.readFile('./backups/upload.json', (err, data) => {
+
+        const dataParsed = JSON.parse(data);
+
+        const [users, courses] = [dataParsed.users, dataParsed.courses]
+
         // User.deleteMany({}, (err) => {
         //   if (err) console.log(err)
         // });
-        User.insertMany(JSON.parse(data), (err, models) => {
+        User.insertMany(users, (err, models) => {
           if (err) console.log(err);
         });
         // Course.deleteMany({}, (err) => {
         //   if (err) console.log(err)
         // });
-        // Course.insertMany(JSON.parse(data).products, (err, models) => {
-        //   if (err) console.log(err);
-        // });
+        Course.insertMany(courses, (err, models) => {
+          if (err) console.log(err);
+        });
 
         ctx.reply('DB was updated', Markup.inlineKeyboard([
           Markup.button.callback('Реклама', 'ads'),
@@ -506,7 +511,7 @@ const activeSpam = async () => {
     store.dispatch(fetchUsers());
     bot.launch();
     console.log('App has been started...');
-    activeSpam();
+    // activeSpam();
     setTimeout(() => {
       store.dispatch(clearVisits());
       setInterval(() => {
